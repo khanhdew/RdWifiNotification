@@ -6,3 +6,9 @@ Open project directory in console
 docker compose up
 ```
 
+Port exposes
+- API: http://localhost:8686/
+- PostgreSQL: jdbc:postgresql://localhost:5782/postgres
+    + rd_notification
+    + postgres
+    + 1234
