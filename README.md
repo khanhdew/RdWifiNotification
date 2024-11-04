@@ -1,5 +1,7 @@
 # How to run
 
+Download serviceAccount from Firebase. Move to `src/main/resources` and rename to serviceAccount.json
+
 Open project directory in console
 ```bash
 ./mvnw clean package -DskipTests
