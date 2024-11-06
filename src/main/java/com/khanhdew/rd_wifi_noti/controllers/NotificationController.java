@@ -73,15 +73,19 @@ public class NotificationController {
                 .putData("body", firebaseNotification.getContent())
                 .build();
 
-        notificationService.saveNotification(firebaseNotification);
-
-        BatchResponse response = firebaseMessaging.sendMulticast(msg);
+        BatchResponse response = null;
+        try {
+            response = firebaseMessaging.sendEachForMulticast(msg);
+            notificationService.saveNotification(firebaseNotification);
+        } catch (FirebaseMessagingException e) {
+            log.error(e.getMessage());
+        }
         List<String> ids = response.getResponses()
                 .stream()
                 .map(r -> r.getMessageId())
                 .collect(Collectors.toList());
 
-        return new ResponseEntity<>(ids, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(ids, HttpStatus.OK);
     }
 
     @PostMapping("/notification/send-multi/{accountId}")
@@ -98,14 +102,18 @@ public class NotificationController {
                 .putData("body", firebaseNotification.getContent())
                 .build();
 
-        notificationService.saveNotification(firebaseNotification);
-
-        BatchResponse response = firebaseMessaging.sendMulticast(msg);
+        BatchResponse response = null;
+        try {
+            response = firebaseMessaging.sendEachForMulticast(msg);
+            notificationService.saveNotification(firebaseNotification);
+        } catch (FirebaseMessagingException e) {
+            log.error(e.getMessage());
+        }
         List<String> ids = response.getResponses()
                 .stream()
                 .map(SendResponse::getMessageId)
                 .collect(Collectors.toList());
-        return new ResponseEntity<>(ids, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(ids, HttpStatus.OK);
     }
 
     @PostMapping("/notification/send-multi")
@@ -127,22 +135,28 @@ public class NotificationController {
                 .putData("body", firebaseNotification.getContent())
                 .build();
 
-        for (Long accountId : recipientIds) {
-            notificationService.saveNotification(new FirebaseNotification(firebaseNotification.getTitle(),
-                    firebaseNotification.getContent(),
-                    firebaseNotification.getSenderId(),
-                    firebaseNotification.getDeviceAttributeId(),
-                    firebaseNotification.getDeviceId(),
-                    accountId,
-                    firebaseNotification.getUnRead(),
-                    firebaseNotification.getTime(),
-                    firebaseNotification.getLink(),
-                    firebaseNotification.getDormitoryId(),
-                    firebaseNotification.getHomeControllerId(),
-                    firebaseNotification.getImageUrl(),
-                    firebaseNotification.getNotificationTypeId()));
+
+        BatchResponse response = null;
+        try {
+            response = firebaseMessaging.sendEachForMulticast(msg);
+            for (Long accountId : recipientIds) {
+                notificationService.saveNotification(new FirebaseNotification(firebaseNotification.getTitle(),
+                        firebaseNotification.getContent(),
+                        firebaseNotification.getSenderId(),
+                        firebaseNotification.getDeviceAttributeId(),
+                        firebaseNotification.getDeviceId(),
+                        accountId,
+                        firebaseNotification.getUnRead(),
+                        firebaseNotification.getTime(),
+                        firebaseNotification.getLink(),
+                        firebaseNotification.getDormitoryId(),
+                        firebaseNotification.getHomeControllerId(),
+                        firebaseNotification.getImageUrl(),
+                        firebaseNotification.getNotificationTypeId()));
+            }
+        } catch (FirebaseMessagingException e) {
+            log.error(e.getMessage());
         }
-        BatchResponse response = firebaseMessaging.sendMulticast(msg);
         List<String> ids = response.getResponses()
                 .stream()
                 .map(SendResponse::getMessageId)
@@ -151,10 +165,10 @@ public class NotificationController {
     }
 
     @PostMapping("/notification/send-uni/{token}")
-    public ResponseEntity<String> sendUniCast(@PathVariable String token,@RequestBody FirebaseNotification firebaseNotification) throws FirebaseMessagingException {
-        if(firebaseTokenService.getFirebaseTokenByToken(token)==null){
+    public ResponseEntity<String> sendUniCast(@PathVariable String token, @RequestBody FirebaseNotification firebaseNotification) throws FirebaseMessagingException {
+        if (firebaseTokenService.getFirebaseTokenByToken(token) == null) {
             log.error("Token {} not found", token);
-            throw new TokenNotFoundException("Token not found");
+            return new ResponseEntity<>("Token " + token + " not found", HttpStatus.NOT_FOUND);
         }
 
         Notification notification = Notification.builder()
@@ -169,7 +183,13 @@ public class NotificationController {
                 .setNotification(notification)
                 .build();
 
-        String id = firebaseMessaging.send(msg);
+        String id = null;
+        try {
+            id = firebaseMessaging.send(msg);
+            notificationService.saveNotification(firebaseNotification);
+        } catch (FirebaseMessagingException e) {
+            log.error(e.getMessage());
+        }
         return new ResponseEntity<String>(id, HttpStatus.OK);
     }
 
