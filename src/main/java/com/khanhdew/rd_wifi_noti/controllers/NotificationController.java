@@ -150,4 +150,27 @@ public class NotificationController {
         return new ResponseEntity<>(ids, HttpStatus.ACCEPTED);
     }
 
+    @PostMapping("/notification/send-uni/{token}")
+    public ResponseEntity<String> sendUniCast(@PathVariable String token,@RequestBody FirebaseNotification firebaseNotification) throws FirebaseMessagingException {
+        if(firebaseTokenService.getFirebaseTokenByToken(token)==null){
+            log.error("Token {} not found", token);
+            throw new TokenNotFoundException("Token not found");
+        }
+
+        Notification notification = Notification.builder()
+                .setTitle("Có người đã bấm chuông cửa")
+                .setBody(firebaseNotification.getContent())
+                .setImage(firebaseNotification.getImageUrl())
+                .build();
+
+        Message msg = Message.builder()
+                .setToken(token)
+                .putData("Có người bấm chuông cửa vào lúc ", firebaseNotification.getContent())
+                .setNotification(notification)
+                .build();
+
+        String id = firebaseMessaging.send(msg);
+        return new ResponseEntity<String>(id, HttpStatus.OK);
+    }
+
 }

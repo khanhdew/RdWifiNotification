@@ -49,6 +49,11 @@ public class FirebaseTokenService_Impl implements FirebaseTokenService {
         return firebaseToken;
     }
 
+    @Override
+    public FirebaseToken getFirebaseTokenByToken(String token) throws TokenNotFoundException {
+        return firebaseTokenRepository.getByToken(token);
+    }
+
 
     @Override
     public void deleteToken(String token) throws TokenNotFoundException {

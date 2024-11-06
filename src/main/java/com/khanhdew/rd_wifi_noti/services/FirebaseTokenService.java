@@ -8,6 +8,7 @@ import java.util.List;
 public interface FirebaseTokenService {
     public FirebaseToken saveToken(FirebaseToken firebaseToken);
     public FirebaseToken updateToken(String token, int notiPermission) throws TokenNotFoundException;
+    public FirebaseToken getFirebaseTokenByToken(String token) throws TokenNotFoundException;
     public void deleteToken(String token) throws TokenNotFoundException;
     public List<FirebaseToken> getTokensByUserId(Long userId);
     public List<FirebaseToken> getAllTokens();
